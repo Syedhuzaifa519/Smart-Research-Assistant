@@ -1,15 +1,48 @@
-# Smart Research Assistant
+# 🧠 Smart Research Assistant
 
-A professional, agentic AI research assistant built from scratch using the ReAct (Reason + Act) pattern. This agent autonomously plans its research, searches the web, extracts information, and synthesizes comprehensive reports with citations.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Architecture: ReAct](https://img.shields.io/badge/Architecture-ReAct-orange.svg)](#core-concepts)
+[![No-Framework](https://img.shields.io/badge/Framework-None-success.svg)](#philosophy)
 
-## 🚀 Key Features
-- **Raw ReAct Loop**: No agent frameworks used—built with pure Python and Anthropic's tool-calling API.
-- **Autonomous Research**: The agent decides when to search, what to extract, and when to stop.
-- **Evidence-Based**: Every claim includes source citations and URLs.
-- **Polished CLI**: Beautiful terminal output powered by `rich`.
+> **A production-grade, zero-framework Agentic AI implementation designed for deep research synthesis.**
 
-## 🛠️ Installation
+---
 
+## 🚀 The Vision
+In an era of LLM hallucinations and surface-level RAG, the **Smart Research Assistant** takes a different approach. Instead of simple vector retrieval, it employs a **ReAct (Reason + Act)** loop to autonomously navigate the web, cross-reference multiple sources, and synthesize high-fidelity research reports with academic-grade citations.
+
+This isn't just a wrapper; it's a blueprint for building autonomous agents that actually *think* before they act.
+
+## 🛠️ Key Differentiators
+- **Zero Framework Bloat**: No LangChain, no CrewAI, no AutoGen. We use raw API calls to ensure maximum observability and minimum latency.
+- **Dynamic Tool Registry**: A strictly-typed registry that handles Anthropic/OpenAI function schemas automatically.
+- **Traceable Reasoning**: Every agent "Thought" is logged, providing a clear audit trail of why the agent took a specific action.
+- **Contradiction Detection**: Engineered to flag when sources disagree, mimicking the critical thinking of a senior analyst.
+
+## 🏗️ Technical Architecture
+The system follows a classic **Agentic Loop** pattern:
+
+```mermaid
+graph TD
+    A[User Query] --> B[LLM Planner]
+    B --> C{Decision}
+    C -->|Reason| D[Thought Process]
+    D --> E[Action Selection]
+    E -->|Tool Call| F[Registry]
+    F --> G[Search/Extract]
+    G -->|Observation| H[Context Update]
+    H --> B
+    C -->|Final Report| I[Markdown Synthesis]
+```
+
+## 💻 Getting Started
+
+### Prerequisites
+- Python 3.10 or higher
+- [Anthropic API Key](https://console.anthropic.com/) (Claude 3.5 Sonnet recommended)
+- [Tavily API Key](https://tavily.com/) (Optimized for AI research)
+
+### Quick Start
 ```bash
 # Clone the repository
 git clone https://github.com/Syedhuzaifa519/Smart-Research-Assistant.git
@@ -17,26 +50,43 @@ cd Smart-Research-Assistant
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Run the researcher
+python main.py "Comparative analysis of Llama 3.1 vs. GPT-4o architecture"
 ```
 
 ## ⚙️ Configuration
-
-1. Create a `.env` file in the root directory:
+Create a `.env` file in the root directory to manage your secrets:
 ```env
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-TAVILY_API_KEY=your_tavily_api_key_here
+ANTHROPIC_API_KEY=sk-ant-xxx
+TAVILY_API_KEY=tvly-xxx
+MODEL_NAME=claude-3-5-sonnet-20240620
+MAX_ITERATIONS=10
 ```
 
-## 📖 Usage
-
-Run the researcher from your terminal:
-
-```bash
-python main.py "Future of quantum computing in 2025"
+## 📂 Project Structure
+```text
+├── agent/
+│   ├── core.py       # The ReAct Agent Loop (The Heart)
+│   ├── llm.py        # Resilient LLM Client with Retries
+│   └── prompts.py    # High-precision System Prompting
+├── tools/
+│   ├── base.py       # Abstract Tool Interface & Registry
+│   ├── search.py     # Tavily-powered Information Retrieval
+│   └── extract.py    # URL Content Distillation
+├── models/
+│   └── schemas.py    # Pydantic Data Validation Models
+└── main.py           # Polished CLI Interface
 ```
 
-## 🏗️ Project Structure
-- `agent/`: Core ReAct logic and LLM client.
-- `tools/`: Web search and extraction tools.
-- `models/`: Data validation schemas (Pydantic).
-- `output/`: Generated research reports.
+## 🗺️ Roadmap
+- [ ] **Parallel Search Planning**: Dispatch multiple search queries simultaneously to reduce latency.
+- [ ] **Recursive Depth Control**: Self-adjusting research depth based on query complexity.
+- [ ] **Source Verification**: Grounding every claim against the Original URL content (beyond snippets).
+- [ ] **Multi-Format Export**: PDF, HTML, and JSON report generation.
+
+## 🎓 Philosophical Note
+This project was built to demonstrate that **clean engineering > complex frameworks**. By understanding the raw loop of an agent, you gain the power to customize its behavior, optimize its costs, and ensure its reliability in production environments.
+
+---
+Built with ❤️ by [Syed Huzaifa](https://github.com/Syedhuzaifa519)
