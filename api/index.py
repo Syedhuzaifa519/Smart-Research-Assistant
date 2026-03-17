@@ -19,7 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+@app.get("/")
+def home():
+    return {"message": "Smart Research Assistant API is running! Use /api/health to check status."}
 class ResearchRequest(BaseModel):
     topic: str
 
