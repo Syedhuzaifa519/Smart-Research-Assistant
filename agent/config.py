@@ -20,7 +20,10 @@ MAX_TOKENS = 4096
 
 # Output Directory
 OUTPUT_DIR = BASE_DIR / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
-
+#OUTPUT_DIR.mkdir(exist_ok=True)
+import os
+# Sirf tab folder banaye jab hum Vercel par NA HON
+if not os.environ.get("VERCEL"):
+    OUTPUT_DIR.mkdir(exist_ok=True)
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
