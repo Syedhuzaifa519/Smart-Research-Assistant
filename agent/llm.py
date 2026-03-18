@@ -1,23 +1,28 @@
 import time
 import logging
+import os
 from typing import List, Dict, Any, Optional
-import anthropic
-from agent.config import ANTHROPIC_API_KEY, MODEL_NAME, MAX_TOKENS
+import openai
+from agent.config import MODEL_NAME, MAX_TOKENS
 
 logger = logging.getLogger(__name__)
 
 class LLMClient:
     """
-    A thin wrapper around the Anthropic API client.
+    A thin wrapper around the OpenAI/Deepseek API client.
     Handles retries, logging, and token usage tracking.
     """
     
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or ANTHROPIC_API_KEY
+        self.api_key = api_key or os.getenv("deepseak_API_KEY")
         if not self.api_key:
-            raise ValueError("Anthropic API key is missing. Please set it in your .env file.")
+            raise ValueError("API key is missing. Please set it in your .env file.")
         
-        self.client = anthropic.Anthropic(api_key=self.api_key)
+        # DeepSeek uses an OpenAI compatible API structure usually
+        self.client = openai.OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.deepseek.com/beta" # Use DeepSeek base URL if needed, or openai default
+        )
         self.total_input_tokens = 0
         self.total_output_tokens = 0
 
@@ -25,40 +30,44 @@ class LLMClient:
              messages: List[Dict[str, Any]], 
              system_prompt: str, 
              tools: Optional[List[Dict[str, Any]]] = None,
-             max_retries: int = 3) -> anthropic.types.Message:
+             max_retries: int = 3) -> Any:
         """
         Sends a request to the LLM with exponential backoff on failure.
         """
+        # Ensure system prompt is in messages
+        all_messages = [{"role": "system", "content": system_prompt}] + messages
         for attempt in range(max_retries):
             try:
                 start_time = time.time()
                 
                 kwargs = {
-                    "model": MODEL_NAME,
+                    "model": MODEL_NAME or "deepseek-chat",
                     "max_tokens": MAX_TOKENS,
-                    "system": system_prompt,
-                    "messages": messages,
+                    "messages": all_messages,
                 }
                 
                 if tools:
                     kwargs["tools"] = tools
 
-                response = self.client.messages.create(**kwargs)
+                response = self.client.chat.completions.create(**kwargs)
                 
                 # Track token usage
-                self.total_input_tokens += response.usage.input_tokens
-                self.total_output_tokens += response.usage.output_tokens
+                if hasattr(response, 'usage') and response.usage:
+                    self.total_input_tokens += getattr(response.usage, 'prompt_tokens', 0)
+                    self.total_output_tokens += getattr(response.usage, 'completion_tokens', 0)
                 
                 latency = (time.time() - start_time) * 1000
-                logger.debug(f"LLM Call latency: {latency:.2f}ms | Tokens: In={response.usage.input_tokens}, Out={response.usage.output_tokens}")
+                in_tokens = getattr(response.usage, 'prompt_tokens', 0) if response.usage else 0
+                out_tokens = getattr(response.usage, 'completion_tokens', 0) if response.usage else 0
+                logger.debug(f"LLM Call latency: {latency:.2f}ms | Tokens: In={in_tokens}, Out={out_tokens}")
                 
                 return response
 
-            except anthropic.APIConnectionError as e:
-                logger.warning(f"Connection error to Anthropic API (attempt {attempt + 1}): {e}")
+            except openai.APIConnectionError as e:
+                logger.warning(f"Connection error to API (attempt {attempt + 1}): {e}")
                 if attempt == max_retries - 1: raise
                 time.sleep(2 ** attempt)  # Exponential backoff
-            except anthropic.RateLimitError as e:
+            except openai.RateLimitError as e:
                 logger.warning(f"Rate limit hit (attempt {attempt + 1}): {e}")
                 if attempt == max_retries - 1: raise
                 time.sleep(5 ** attempt)  # Longer backoff for rate limits

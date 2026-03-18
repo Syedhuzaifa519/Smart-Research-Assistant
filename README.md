@@ -15,7 +15,7 @@ This isn't just a wrapper; it's a blueprint for building autonomous agents that 
 
 ## 🛠️ Key Differentiators
 - **Zero Framework Bloat**: No LangChain, no CrewAI, no AutoGen. We use raw API calls to ensure maximum observability and minimum latency.
-- **Dynamic Tool Registry**: A strictly-typed registry that handles Anthropic/OpenAI function schemas automatically.
+- **Dynamic Tool Registry**: A strictly-typed registry that handles OpenAI function schemas automatically.
 - **Traceable Reasoning**: Every agent "Thought" is logged, providing a clear audit trail of why the agent took a specific action.
 - **Contradiction Detection**: Engineered to flag when sources disagree, mimicking the critical thinking of a senior analyst.
 
@@ -39,7 +39,7 @@ graph TD
 
 ### Prerequisites
 - Python 3.10 or higher
-- [Anthropic API Key](https://console.anthropic.com/) (Claude 3.5 Sonnet recommended)
+- [Deepseek API Key](https://platform.deepseek.com/)
 - [Tavily API Key](https://tavily.com/) (Optimized for AI research)
 
 ### Quick Start
@@ -58,9 +58,9 @@ python main.py "Comparative analysis of Llama 3.1 vs. GPT-4o architecture"
 ## ⚙️ Configuration
 Create a `.env` file in the root directory to manage your secrets:
 ```env
-ANTHROPIC_API_KEY=sk-ant-xxx
+deepseak_API_KEY=sk-xxx
 TAVILY_API_KEY=tvly-xxx
-MODEL_NAME=claude-3-5-sonnet-20240620
+MODEL_NAME=deepseek-chat
 MAX_ITERATIONS=10
 ```
 

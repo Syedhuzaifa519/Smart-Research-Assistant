@@ -43,20 +43,20 @@ class ResearchAgent:
             )
             
             # Add assistant message to history
-            self.messages.append({"role": "assistant", "content": response.content})
+            assistant_message = response.choices[0].message
+            self.messages.append(assistant_message.model_dump(exclude_unset=True))
             
-            # Process response content blocks
+            # Process response content
             tool_calls_in_this_step = []
-            final_text = ""
+            final_text = assistant_message.content or ""
             
-            for block in response.content:
-                if block.type == "text":
-                    final_text += block.text
-                elif block.type == "tool_use":
+            tool_calls = assistant_message.tool_calls
+            if tool_calls:
+                for tool_call_obj in tool_calls:
                     # 2. Execute Tool
-                    tool_name = block.name
-                    tool_input = block.input
-                    tool_use_id = block.id
+                    tool_name = tool_call_obj.function.name
+                    tool_input = json.loads(tool_call_obj.function.arguments)
+                    tool_use_id = tool_call_obj.id
                     
                     start_time = time.time()
                     try:
@@ -74,39 +74,31 @@ class ResearchAgent:
                         
                         # 3. Add Tool Result to history
                         self.messages.append({
-                            "role": "user",
-                            "content": [{
-                                "type": "tool_result",
-                                "tool_use_id": tool_use_id,
-                                "content": json.dumps(result)
-                            }]
+                            "role": "tool",
+                            "tool_call_id": tool_use_id,
+                            "content": json.dumps(result)
                         })
                         
                     except Exception as e:
                         logger.error(f"Error executing tool {tool_name}: {e}")
                         # Inform the agent about the error
                         self.messages.append({
-                            "role": "user",
-                            "content": [{
-                                "type": "tool_result",
-                                "tool_use_id": tool_use_id,
-                                "content": json.dumps({"error": str(e)}),
-                                "is_error": True
-                            }]
+                            "role": "tool",
+                            "tool_call_id": tool_use_id,
+                            "content": json.dumps({"error": str(e)})
                         })
 
             # Record this step
-            # Note: We're assuming the text block contains the "Thought"
             step = AgentStep(
                 step_number=i + 1,
-                thought=final_text.strip(),
+                thought=final_text.strip() if final_text else "",
                 action=tool_calls_in_this_step[0] if tool_calls_in_this_step else None,
                 observation=json.dumps(tool_calls_in_this_step[0].result) if tool_calls_in_this_step else None
             )
             agent_steps.append(step)
 
             # Check if LLM is done (returned text but no tool calls)
-            if not tool_calls_in_this_step and final_text:
+            if not tool_calls and final_text:
                 logger.info("Agent has finished research.")
                 # Return report (we'll parse it better later, but for now wrap the text)
                 return ResearchReport(

@@ -33,12 +33,15 @@ class Tool(ABC):
         """Executes the tool with the provided arguments."""
         pass
 
-    def to_anthropic_schema(self) -> Dict[str, Any]:
-        """Converts the tool definition to Anthropic's tool schema format."""
+    def to_openai_schema(self) -> Dict[str, Any]:
+        """Converts the tool definition to OpenAI's tool schema format."""
         return {
-            "name": self.name,
-            "description": self.description,
-            "input_schema": self.parameters
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters
+            }
         }
 
 class ToolRegistry:
@@ -53,8 +56,8 @@ class ToolRegistry:
         logger.info(f"Registered tool: {tool.name}")
 
     def get_tool_schemas(self) -> List[Dict[str, Any]]:
-        """Returns all tool schemas in Anthropic format."""
-        return [tool.to_anthropic_schema() for tool in self.tools.values()]
+        """Returns all tool schemas in OpenAI format."""
+        return [tool.to_openai_schema() for tool in self.tools.values()]
 
     def execute(self, tool_name: str, **kwargs) -> Any:
         """Finds and executes a tool by name."""
